@@ -1,6 +1,6 @@
 # Correzione tavole
 
-Web app in italiano per la correzione delle tavole di disegno tecnico. Il file storico `Correzione tavole.html` resta disponibile nel repository. La nuova versione parte da `site/index.html`.
+Web app in italiano per la correzione delle tavole di disegno tecnico. Il file storico, originariamente `Correzione tavole.html`, resta disponibile come `index.html` nella radice del repository. La nuova versione parte da `site/index.html`.
 
 ## Funzioni e migrazione
 
