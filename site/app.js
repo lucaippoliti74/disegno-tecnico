@@ -93,7 +93,11 @@ function choosePage(pdf,title,name){return new Promise(res=>{const M=$('#pg'),G=
  M.hidden=false;const first=G.querySelector('button');if(first)first.focus();
  (async()=>{for(let i=1;i<=n&&!over;i++){try{const c=await renderPage(pdf,i,320),slot=!over&&G.querySelector(`[data-p="${i}"] .pgc`);if(slot)slot.replaceChildren(c)}catch(e){}}})()})}
 const pdfErr=e=>e&&e.message==='pdfjs'?'Non riesco a caricare il lettore PDF: controlla la connessione o usa un’immagine':'Non riesco ad aprire questo PDF: prova a esportare la pagina in PNG o JPG';
-function closePdf(k){if(S[k]){const pdf=S[k].pdf;S[k]=null;void pdf.destroy().catch(()=>{})}}
+function closePdf(k){
+ const entry=S[k];
+ S[k]=null;
+ if(entry)void Promise.resolve().then(()=>entry.pdf.destroy()).catch(()=>{});
+}
 function imgCanvas(im,side,white){const k=Math.min(1,side/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);
  const x=c.getContext('2d',{willReadFrequently:!white});if(white){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}x.drawImage(im,0,0,c.width,c.height);return c}
 async function pdfPage(f,k,title,side,msg){let pdf=f?null:S[k]&&S[k].pdf;if(!f&&!pdf)return null;const name=f?str(f.name)||'documento.pdf':S[k].name;
@@ -104,8 +108,10 @@ async function pdfPage(f,k,title,side,msg){let pdf=f?null:S[k]&&S[k].pdf;if(!f&&
 function refMsg(m){$('#refBtn').disabled=$('#refPg').disabled=!!m;if(m)$('#refName').textContent=m}
 async function onRef(f,again){$('#anonimo').checked=false;if(!f&&!again)return;
  try{let c,label;if(again||isPdf(f)){const r=await pdfPage(again?null:f,'rpdf','Pagina del riferimento',1600,refMsg);if(!r)return;({c,label}=r)}
-  else{refMsg('Apro l’immagine…');c=imgCanvas(await loadImg(f),1600,true);label=str(f.name)||'riferimento';closePdf('rpdf')}
-  const url=c.toDataURL('image/jpeg',.9);S.ref={blob:d2b(url),url,name:label};$('#anonimo').checked=false;if(!lsSet('ct.ref',{name:label,d:url}))toast('Riferimento caricato, ma non salvato su questo dispositivo')}
+  else{refMsg('Apro l’immagine…');c=imgCanvas(await loadImg(f),1600,true);label=str(f.name)||'riferimento'}
+  const url=c.toDataURL('image/jpeg',.9);S.ref={blob:d2b(url),url,name:label};
+  if(!again&&!isPdf(f))closePdf('rpdf');
+  $('#anonimo').checked=false;if(!lsSet('ct.ref',{name:label,d:url}))toast('Riferimento caricato, ma non salvato su questo dispositivo')}
  catch(e){toast(again||isPdf(f)?pdfErr(e):'Non riesco a leggere questa immagine')}
  finally{refMsg('');renderRef();exSum()}}
 function setSource(c){S.src=c;S.srcData=null;S.disp=null;const w=c.width,h=c.height,m=Math.round(Math.min(w,h)*.08);S.q=[[m,m],[w-m,m],[w-m,h-m],[m,h-m]];S.warp=S.proc=S.out=null;S.rot=0;S.photoId++;$('#anonimo').checked=false;S.mode='angoli';renderSheet()}

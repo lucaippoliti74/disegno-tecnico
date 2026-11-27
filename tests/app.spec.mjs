@@ -122,8 +122,20 @@ test('PDF multipagina e controprova geometrica', async ({page}, info) => {
   await page.getByRole('button',{name:'Pagina 2',exact:true}).click();
   await expect(page.locator('#refName')).toContainText('pagina 2');
   const image = await drawing(page);
+  await page.evaluate(() => {
+    const events = [];
+    const toast = document.querySelector('#toast');
+    document.querySelector('#fRef').addEventListener('change', event => events.push(event.target.files[0]?.type));
+    new MutationObserver(() => {if (!toast.hidden) events.push(toast.textContent)}).observe(toast, {attributes:true, childList:true});
+    window.testReferenceEvents = events;
+  });
   await page.locator('#fRef').setInputFiles(image);
-  await expect(page.locator('#refName')).toContainText(image.name);
+  try {
+    await expect(page.locator('#refName')).toContainText(image.name);
+  } catch (error) {
+    console.log('Eventi di sostituzione del riferimento:', await page.evaluate(() => window.testReferenceEvents));
+    throw error;
+  }
   const asso = await page.evaluate(() => Object.keys(window.CT.PRESETS).find(key => window.CT.PRESETS[key].asso));
   await page.locator('#preset').selectOption(asso);
   await page.locator('#fFile').setInputFiles(image);
