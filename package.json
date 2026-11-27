@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "engines": {"node": ">=24"},
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "backend": "node --env-file-if-exists=.env backend/server.mjs",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@fontsource/barlow": "5.3.0",
+    "@fontsource/barlow-semi-condensed": "5.3.0",
+    "@fontsource/caveat": "5.3.0",
+    "@playwright/test": "1.65.1",
+    "pdfjs-dist": "4.10.38"
+  }
+}
