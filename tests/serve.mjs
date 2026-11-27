@@ -19,18 +19,17 @@ const measure = {
 };
 createBackend({
   FRONTEND_ORIGIN: origin,
-  OPENAI_API_KEY: 'server-test',
+  AI_PROVIDER: 'mock',
   TEACHER_TOKEN_HASHES: tokens.map(token => createHash('sha256').update(token).digest('hex')).join(','),
   QUOTA_DB: ':memory:',
-}, async (url, request) => {
-  const body = JSON.parse(request.body);
-  const [text, ...images] = body.input[0].content;
-  if (url !== 'https://api.openai.com/v1/responses' || request.headers.Authorization !== 'Bearer server-test' ||
-      body.store !== false || !images.every(img => img.image_url.startsWith('data:image/jpeg;base64,')) ||
-      /CODICE-LOCALE|Valutazione secondo PDP|Valutazione secondo PEI/.test(text.text)) {
+}, () => {
+  throw Error('Il provider di test non deve usare la rete');
+}, {mockReply: ({userPrompt, images}) => {
+  if (!images.length || !images.every(img => img.mimeType === 'image/jpeg' && img.base64) ||
+      /CODICE-LOCALE|Valutazione secondo PDP|Valutazione secondo PEI/.test(userPrompt)) {
     throw Error('Contratto del servizio non rispettato');
   }
-  const test = text.text.startsWith('FASE PRELIMINARE');
+  const test = userPrompt.startsWith('FASE PRELIMINARE');
   if (test && images.length !== 4) throw Error('Immagini della controprova incomplete');
   const result = test ? {misure:[measure]} : {
     giudizio: 'Buona costruzione. Verifica le linee di proiezione.',
@@ -38,8 +37,8 @@ createBackend({
     leggibile: true,
     misure: [measure],
   };
-  return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(result)}]}]});
-}).listen(4274, '127.0.0.1');
+  return result;
+}}).listen(4274, '127.0.0.1');
 
 const root = resolve('dist');
 const mime = {'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.woff2':'font/woff2'};

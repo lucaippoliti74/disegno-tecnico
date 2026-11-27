@@ -14,6 +14,7 @@ if (endpoint) {
 }
 
 mkdirSync('dist/vendor', {recursive: true});
+cpSync('site/prompts', 'dist/prompts', {recursive: true});
 for (const file of ['app.js', 'api.js', 'geometria.js']) cpSync('site/' + file, 'dist/' + file);
 const html = readFileSync('site/index.html', 'utf8').replace(/connect-src [^;]+;/, 'connect-src ' + connect + ';');
 writeFileSync('dist/index.html', html);

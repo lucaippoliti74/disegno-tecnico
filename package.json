@@ -4,7 +4,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "backend": "node --env-file-if-exists=.env backend/server.mjs",
-    "test": "playwright test"
+    "test": "npm run test:unit && playwright test",
+    "test:unit": "node --test tests/ai.test.mjs"
   },
   "devDependencies": {
     "@fontsource/barlow": "5.3.0",
@@ -14,3 +15,4 @@
     "pdfjs-dist": "4.10.38"
   }
 }
+
