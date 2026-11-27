@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Correzione tavole</title>
+<link rel="stylesheet" href="./fonts/fonts.css">
+<style>
+/* VOICE   a teacher's work tool: exact, quiet, one red pen
+   IDEA    the drafting sheet itself: squadratura, cartiglio, a grade written and circled in red pen
+   PICTURE the student's photo, large, with four red targets dragged onto the squadratura corners; then the scheda drawn as a cartiglio
+   COLOUR  white paper, graphite ink, drawing-board grey panels, red pen for grade, defects and targets
+   TYPE    Barlow Semi Condensed + Barlow (technical lettering); Caveat only for the hand-written grade
+   LAYOUT  laptop: sheet and exercise left, scheda right, registro full width below; phone: title, sheet, exercise, scheda, registro */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#131517);--ink:light-dark(#1c1f24,#ebeae6);--mute:light-dark(#5b6068,#a3a8ae);--board:light-dark(#f0efea,#1d2024);--line:light-dark(#d6d4cd,#383c42);--paper:light-dark(#ffffff,#e7e6e1);--red:light-dark(#cf2338,#ff6370);--redsoft:light-dark(#fde8eb,#3b1d22)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Barlow,"Helvetica Neue",Arial,sans-serif;overflow-x:clip}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:"Barlow Semi Condensed",Barlow,"Arial Narrow",sans-serif;font-weight:600;line-height:1.05;letter-spacing:-.01em;margin:0}
+h1{font-size:clamp(32px,5vw,46px);letter-spacing:-.02em;text-wrap:balance}
+h2{font-size:20px}
+h3{font-size:16px;margin:20px 0 8px}
+p{margin:0}
+ul{margin:0;padding-left:1.2em}
+li{margin:3px 0}
+img{max-width:100%}
+[hidden]{display:none!important}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,4vw,env(safe-area-inset-left,0px));padding-right:max(16px,4vw,env(safe-area-inset-right,0px))}
+.mute{color:var(--mute)}
+.small{font-size:14px}
+.bad{color:var(--red)}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 40px;padding-top:clamp(20px,3.5vw,44px);padding-bottom:20px}
+.lead{margin-top:10px;color:var(--mute);max-width:58ch}
+.stats{display:flex;flex-wrap:wrap;gap:28px}
+.stat b{display:block;font:600 28px/1 "Barlow Semi Condensed",Barlow,sans-serif;font-variant-numeric:tabular-nums}
+.stat span{font-size:14px;color:var(--mute)}
+.banner{margin:0 0 16px;padding:12px 14px;border-radius:8px;background:var(--redsoft)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start;padding-bottom:36px}
+@media(min-width:900px){.grid{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
+.col{display:grid;gap:20px;align-content:start}
+.panel{background:var(--board);border-radius:10px;padding:16px}
+.phead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
+.stage{position:relative;border-radius:6px;overflow:hidden;background:light-dark(#e2e1db,#0e1012)}
+.empty{padding:clamp(10px,3vw,26px)}
+.empty svg{display:block;width:100%;height:auto}
+.pl{stroke:#8d9198;stroke-width:.8}
+.fr{fill:none;stroke:#2a2e35;stroke-width:1.6}
+.fr2{fill:none;stroke:#2a2e35;stroke-width:.8}
+.pap{fill:var(--paper);stroke:#c9c7c0}
+.shd{fill:rgba(0,0,0,.12)}
+.tgt{fill:none;stroke:#e8263e;stroke-width:2}
+.ql{font:600 9px Barlow,sans-serif;fill:#3b3f46}
+.ct{font:500 8px Barlow,sans-serif;fill:#9a9ea5}
+.vbox,.pbox{position:relative;margin:0 auto}
+#view,#pv{display:block;width:100%;height:100%}
+.hnd{position:absolute;left:0;top:0;width:48px;height:48px;margin:-24px 0 0 -24px;padding:0;border:0;border-radius:50%;background:none;touch-action:none;cursor:grab;z-index:2}
+.hnd::before{content:"";position:absolute;inset:11px;border:2.5px solid #e8263e;border-radius:50%;background:rgba(255,255,255,.18);box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
+.hnd::after{content:"";position:absolute;left:22px;top:22px;width:4px;height:4px;border-radius:50%;background:#e8263e}
+.hnd.drag{cursor:grabbing}
+.hnd:focus-visible{outline:3px solid #fff;outline-offset:-3px}
+.loupe{position:absolute;left:0;top:0;width:132px;height:132px;border-radius:50%;border:3px solid #e8263e;box-shadow:0 6px 18px rgba(0,0,0,.35);pointer-events:none;z-index:3;background:#fff}
+.pbox.q4::before,.pbox.q4::after{content:"";position:absolute;pointer-events:none}
+.pbox.q4::before{left:50%;top:0;bottom:0;border-left:1.5px dashed rgba(232,38,62,.85)}
+.pbox.q4::after{top:50%;left:0;right:0;border-top:1.5px dashed rgba(232,38,62,.85)}
+.busy{position:absolute;inset:0;z-index:4;display:grid;place-items:center;padding:16px;background:rgba(16,18,20,.6);color:#fff;font-weight:600;text-align:center}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.help{margin-top:10px;font-size:14px;color:var(--mute)}
+.drop{outline:2.5px dashed var(--red);outline-offset:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border:1.5px solid var(--ink);border-radius:8px;background:transparent;font-weight:600;cursor:pointer;text-align:center}
+.btn:hover{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.btn.pri{background:var(--ink);color:var(--bg)}
+.btn.pri:hover{background:color-mix(in srgb,var(--ink) 84%,var(--bg))}
+.btn.ghost{border-color:var(--line)}
+.btn.big{width:100%;min-height:56px;font-size:18px}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn[aria-pressed=true]{background:color-mix(in srgb,var(--ink) 13%,transparent)}
+.btn[aria-pressed=false]{border-style:dashed;color:var(--mute)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible,.link:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.link{border:0;background:none;padding:0;font-weight:600;text-decoration:underline;cursor:pointer}
+.go{margin-top:16px}
+#come{margin-top:8px}
+.run{margin-top:12px;padding:12px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--line)}
+.runrow{display:flex;justify-content:space-between;gap:12px;font-weight:600}
+.runrow .mute{white-space:nowrap;font-variant-numeric:tabular-nums}
+.line{height:3px;margin:10px 0 12px;border-radius:2px;background:var(--line);overflow:hidden}
+.line i{display:block;width:38%;height:100%;border-radius:2px;background:var(--red);animation:pen 1.7s ease-in-out infinite}
+@keyframes pen{from{transform:translateX(-100%)}to{transform:translateX(265%)}}
+@media(prefers-reduced-motion:reduce){.line i{animation:none;width:100%;opacity:.45}}
+.err{margin-top:12px;padding:12px 14px;border-radius:8px;background:var(--redsoft);display:grid;gap:10px;justify-items:start}
+.ex>summary{position:relative;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;min-height:44px;padding-right:30px;cursor:pointer;list-style:none}
+.ex>summary::-webkit-details-marker{display:none}
+.ex>summary::after{content:"";position:absolute;right:6px;top:6px;width:9px;height:9px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:rotate(45deg)}
+.ex[open]>summary::after{top:11px;transform:rotate(-135deg)}
+.fld{display:grid;gap:6px;margin-top:14px}
+label,.lab,legend{font-size:14px;font-weight:600}
+select,textarea,input[type=text],input[type=search],input[type=number]{width:100%;min-height:44px;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);font-size:16px}
+textarea{resize:vertical;line-height:1.45}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(11em,1fr));gap:0 12px}
+.refrow{display:flex;align-items:center;gap:12px}
+.refrow img{width:96px;height:68px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:4px}
+.pesi{border:0;margin:18px 0 0;padding:0}
+.peso{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.peso label{display:grid;gap:1px}
+.peso label span{font-weight:400}
+.wv{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.wv input{width:5.2em;text-align:right;font-variant-numeric:tabular-nums}
+.tot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;font-size:14px;font-weight:600}
+.chk{display:flex;align-items:flex-start;gap:10px;margin-top:16px;font-size:15px;font-weight:500;cursor:pointer}
+.chk input{flex:none;width:20px;height:20px;margin:2px 0 0;accent-color:var(--ink)}
+.scheda{background:var(--bg);border:1.5px solid var(--ink);border-radius:4px}
+.vbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px;padding:10px 14px;background:var(--bg);border-bottom:1.5px solid var(--ink)}
+.vbar h2{margin-right:auto}
+.vmini{font-weight:600;white-space:nowrap}
+.vmini b{color:var(--red)}
+.cart{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(7.2em,9.5em);grid-template-areas:"cod cod voto" "ex dt voto";border-bottom:1.5px solid var(--ink)}
+.cell{display:grid;gap:2px;align-content:start;padding:8px 12px;border-right:1px solid var(--ink)}
+.cell .lab,.cell label{font-size:13px;color:var(--mute)}
+.c-cod{grid-area:cod;border-bottom:1px solid var(--ink)}
+.c-ex{grid-area:ex}
+.c-dt{grid-area:dt}
+.c-voto{grid-area:voto;border-right:0;justify-items:center;text-align:center}
+.c-cod input{min-height:38px;padding:2px 0;border:0;border-bottom:1.5px dashed var(--line);border-radius:0;background:transparent;font-size:19px;font-weight:600}
+.gw{position:relative;display:grid;place-items:center;width:100%;min-height:86px}
+.hand{position:relative;z-index:1;font:700 clamp(54px,7vw,70px)/.9 Caveat,"Segoe Print",cursive;color:var(--red)}
+.ring{position:absolute;left:50%;top:50%;width:min(124px,100%);transform:translate(-50%,-48%) rotate(-5deg);pointer-events:none}
+.ring path{fill:none;stroke:var(--red);stroke-width:2.4;stroke-linecap:round}
+.vnum{font-size:14px;color:var(--mute);white-space:nowrap;font-variant-numeric:tabular-nums}
+.sample{margin:12px 14px 0;padding:8px 12px;border:1.5px dashed var(--line);border-radius:6px;font-size:14px;color:var(--mute)}
+.sbody{padding:2px 14px 18px}
+.warn{margin-top:14px;padding:10px 12px;border-radius:6px;background:var(--redsoft);font-size:15px}
+.crit{list-style:none;margin:0;padding:0;border-top:1.5px solid var(--ink)}
+.cr{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 12px;margin:0;padding:12px 0;border-bottom:1px solid var(--line)}
+.nm{font-weight:600}
+.w{margin-left:4px;color:var(--mute);white-space:nowrap}
+.mod{display:block;font-size:13px;color:var(--red)}
+.step{display:flex;align-items:center;gap:4px}
+.step button{width:44px;height:44px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);font-size:22px;line-height:1;cursor:pointer}
+.step button:hover{border-color:var(--ink)}
+.step output{min-width:3em;text-align:center;font:600 21px/1 "Barlow Semi Condensed",Barlow,sans-serif;font-variant-numeric:tabular-nums}
+.bar{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px;background:var(--ink)}
+.bar i.lo{background:var(--red)}
+.cm{grid-column:1/-1;font-size:15px}
+.calc{margin-top:12px;font-size:15px;color:var(--mute)}
+.calc b{color:var(--ink)}
+.quad{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1.5px solid var(--ink)}
+.qz{padding:10px 12px;border-right:1px solid var(--ink);border-bottom:1px solid var(--ink);font-size:15px}
+.qz:nth-child(2n){border-right:0}
+.qz:nth-child(n+3){border-bottom:0}
+.qz>div{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;margin-bottom:4px}
+.qz b{font:600 19px/1 "Barlow Semi Condensed",Barlow,sans-serif}
+.es{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;white-space:nowrap}
+.es::before{content:"";width:9px;height:9px;border:2px solid currentColor;border-radius:50%}
+.es.buono::before,.es.gravi::before{background:currentColor}
+.es.lievi,.es.gravi{color:var(--red)}
+.zl{list-style:none;padding:0;border-top:1.5px solid var(--ink)}
+.zl li{margin:0;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(14em,1fr));gap:0 24px}
+.two ul{font-size:15px}
+#giud{min-height:120px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.meta{margin-top:10px;font-size:13px;color:var(--mute)}
+.vuota{padding:24px 14px;color:var(--mute)}
+.reg{padding-top:28px;padding-bottom:56px;border-top:1px solid var(--line)}
+.rhead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+.rhead .tools{margin-top:0}
+.rbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-top:16px}
+.rbar input{max-width:24em}
+.rlist{list-style:none;margin:14px 0 0;padding:0;border-top:1.5px solid var(--ink)}
+.rlist>li{margin:0;border-bottom:1px solid var(--line)}
+.rlist summary{display:grid;grid-template-columns:3.4em minmax(0,1fr) auto;align-items:center;gap:4px 14px;min-height:60px;padding:8px 0;cursor:pointer;list-style:none}
+.rlist summary::-webkit-details-marker{display:none}
+.rlist .hand{font-size:34px;text-align:center}
+.rm{display:grid}
+.rm span{overflow:hidden;font-size:14px;text-overflow:ellipsis;white-space:nowrap}
+.rd{display:grid;justify-items:end;font-size:14px;white-space:nowrap}
+.rd b{font-variant-numeric:tabular-nums}
+.rbody{padding:0 0 14px calc(3.4em + 14px)}
+.rcr{list-style:none;max-width:34em;margin:0 0 10px;padding:0}
+.rcr li{display:flex;justify-content:space-between;gap:12px;margin:0;padding:3px 0;border-bottom:1px dotted var(--line);font-size:15px}
+.rcr b{font-variant-numeric:tabular-nums}
+.rempty{padding:18px 0;color:var(--mute)}
+.foot{margin-top:14px}
+.toast{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:20;max-width:calc(100% - 32px);padding:10px 16px;border-radius:8px;background:var(--ink);color:var(--bg);font-weight:600;transform:translateX(-50%);box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.pg{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;background:rgba(10,12,14,.55)}
+.pgbox{width:min(760px,100%);max-height:100%;overflow:auto;padding:16px;border:1.5px solid var(--ink);border-radius:10px;background:var(--bg)}
+.pghead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px}
+.pggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin:14px 0 4px}
+.pgi{display:grid;gap:6px;padding:8px;border:1.5px solid var(--line);border-radius:8px;background:var(--board);font-weight:600;cursor:pointer}
+.pgi:hover{border-color:var(--ink)}
+.pgi:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.pgc{display:grid;place-items:center;aspect-ratio:1.414;border-radius:4px;background:#fff;overflow:hidden}
+.pgc:empty::after{content:"…";color:#8d9198;font-weight:600}
+.pgc canvas{display:block;max-width:100%;max-height:100%}
+.profilo{margin-top:6px}
+.profilo>.fld{margin-top:10px}
+.profilo.on{margin-top:14px;padding:2px 12px 14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg)}
+.profilo .pesi{margin-top:14px}
+.profilo .warn{margin-top:12px}
+.dic{display:block;margin-top:3px;font-size:13px;font-weight:600}
+.tetto{margin-top:6px}
+.eg{margin:0 0 4px;padding-left:1.2em;font-size:15px}
+.ver{margin-top:6px}.ver ul{margin:0 0 4px;padding-left:1.2em;font-size:15px}.ver li{margin-bottom:3px}.ver li.errato{color:var(--red);font-weight:600}.ver li.nd{opacity:.75}.ver figure.sov{margin:8px 0}.ver figure.sov img{display:block;width:100%;height:auto;border:1px solid var(--line,#ccc);border-radius:6px;background:#fff}.ver figcaption{margin-top:4px}
+.tetto .chk{margin-top:8px}
+.cbox{position:fixed;left:12px;right:12px;bottom:12px;z-index:30;display:grid;gap:10px;max-width:640px;margin:0 auto;padding:14px;border:1.5px solid var(--ink);border-radius:10px;background:var(--bg);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+@media(max-width:600px){.stats{gap:20px}.cart{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 7.4em}.rbody{padding-left:0}.panel{padding:12px}}
+</style>
+</head>
+<body>
+<header class="wrap top">
+  <div>
+    <h1>Correzione tavole</h1>
+    <p class="lead">Fotografa l’elaborato o aprilo da file, porta i quattro mirini sugli angoli della squadratura e ricevi griglia, giudizio e voto in decimi.</p>
+  </div>
+  <div class="stats" aria-label="Riepilogo del registro">
+    <div class="stat"><b id="stN">0</b><span>nel registro</span></div>
+    <div class="stat"><b id="stO">0</b><span>valutate oggi</span></div>
+    <div class="stat"><b id="stM">—</b><span>media voti</span></div>
+  </div>
+</header>
+<div class="wrap"><p id="banner" class="banner" role="status" hidden></p></div>
+<main class="wrap grid">
+  <div class="col">
+    <section class="panel sheet" aria-labelledby="hFoto">
+      <div class="phead"><h2 id="hFoto">Tavola</h2><span id="stepNote" class="small mute">Scatta la foto</span></div>
+      <div id="stage" class="stage">
+        <div id="empty" class="empty">
+          <svg viewBox="0 0 420 289" role="img" aria-label="Tavola con squadratura divisa in quattro quadranti e quattro mirini rossi sugli angoli">
+            <defs>
+              <pattern id="pA" width="7" height="7" patternUnits="userSpaceOnUse"><path d="M0 3.5H7" class="pl"/></pattern>
+              <pattern id="pB" width="7" height="7" patternUnits="userSpaceOnUse"><path d="M3.5 0V7" class="pl"/></pattern>
+              <pattern id="pC" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 4H8" class="pl"/></pattern>
+              <pattern id="pD" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><path d="M0 4H8" class="pl"/></pattern>
+              <g id="tg"><circle r="8.5" class="tgt"/><path d="M-15 0H-5M5 0H15M0-15V-5M0 5V15" class="tgt"/></g>
+            </defs>
+            <rect x="8" y="9" width="406" height="276" class="shd"/>
+            <rect x="5" y="5" width="406" height="276" class="pap"/>
+            <rect x="28" y="18" width="360" height="250" class="fr"/>
+            <path d="M208 18V268M28 143H388" class="fr2"/>
+            <rect x="40" y="31" width="156" height="100" fill="url(#pA)"/>
+            <rect x="220" y="31" width="156" height="100" fill="url(#pB)"/>
+            <rect x="40" y="156" width="156" height="100" fill="url(#pC)"/>
+            <rect x="220" y="156" width="156" height="100" fill="url(#pD)"/>
+            <g class="ql"><text x="118" y="28" text-anchor="middle">A</text><text x="298" y="28" text-anchor="middle">B</text><text x="118" y="153" text-anchor="middle">C</text><text x="298" y="153" text-anchor="middle">D</text></g>
+            <text x="360" y="278" text-anchor="end" class="ct">Cognome Nome · 1B · Tav. 01</text>
+            <use href="#tg" x="28" y="18"/><use href="#tg" x="388" y="18"/><use href="#tg" x="388" y="268"/><use href="#tg" x="28" y="268"/>
+          </svg>
+        </div>
+        <div id="vbox" class="vbox" hidden>
+          <canvas id="view"></canvas>
+          <button type="button" class="hnd" aria-label="Mirino 1: sposta con le frecce"></button>
+          <button type="button" class="hnd" aria-label="Mirino 2: sposta con le frecce"></button>
+          <button type="button" class="hnd" aria-label="Mirino 3: sposta con le frecce"></button>
+          <button type="button" class="hnd" aria-label="Mirino 4: sposta con le frecce"></button>
+          <canvas id="loupe" class="loupe" hidden></canvas>
+        </div>
+        <div id="pbox" class="pbox" hidden><canvas id="pv"></canvas></div>
+        <div id="busy" class="busy" hidden><span id="busyT">Elaboro la foto…</span></div>
+      </div>
+      <div id="tools" class="tools"></div>
+      <p id="help" class="help"></p>
+      <div id="profWrap" class="profilo">
+        <div class="fld"><label for="prof">Valutazione</label><select id="prof"></select></div>
+        <div id="profBox" hidden></div>
+      </div>
+      <div class="go">
+        <details id="accesso" class="fld" hidden><summary>Accesso docente alla valutazione</summary><label for="token">Codice di accesso personale</label><input id="token" type="password" autocomplete="off" spellcheck="false" maxlength="120"><button type="button" class="btn" id="disconnetti">Dimentica codice</button><p class="small mute">Prima dell’invio rimuovi nomi, cartigli e altri dati identificativi dalla tavola, dal riferimento e dalle note. Il registro resta in questo browser.</p></details>
+        <label id="privacy" class="chk" hidden><input id="anonimo" type="checkbox"> Ho verificato che immagini, consegna e note da inviare non contengono dati identificativi o informazioni sanitarie.</label>
+        <button type="button" id="valuta" class="btn pri big" disabled>Valuta la tavola</button>
+        <p id="come" class="small mute"></p>
+        <div id="run" class="run" hidden>
+          <div class="runrow"><span id="runT">Preparo le immagini…</span><span id="runS" class="mute">0 s</span></div>
+          <div class="line"><i></i></div>
+          <button type="button" id="stop" class="btn ghost">Interrompi</button>
+        </div>
+        <div id="err" class="err" role="alert" hidden></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Esercizio e griglia">
+      <details id="exDet" class="ex" open>
+        <summary><h2>Esercizio e griglia</h2><span id="exSum" class="small mute"></span></summary>
+        <div class="fld"><label for="preset">Tipo di elaborato</label><select id="preset"></select></div>
+        <div class="fld"><label for="consegna">Consegna</label><textarea id="consegna" rows="2" placeholder="es. Tavola 01, tracciamenti con riga e squadre su foglio A3"></textarea></div>
+        <div class="row2">
+          <div class="fld"><label for="compl">Complessità</label><select id="compl"><option value="bassa">★ Bassa</option><option value="media">★★ Media</option><option value="alta">★★★ Alta</option></select></div>
+          <div class="fld"><label for="tier">Analisi</label><select id="tier"><option value="complex">Accurata, più lenta</option><option value="default">Rapida</option></select></div>
+        </div>
+        <div class="fld">
+          <span class="lab">Disegno di riferimento</span>
+          <div class="refrow"><img id="refImg" alt="Disegno di riferimento" hidden><span id="refName" class="small mute">Nessun riferimento</span></div>
+          <div class="tools"><button type="button" id="refBtn" class="btn">Carica file</button><button type="button" id="refPg" class="btn" hidden>Altra pagina</button><button type="button" id="refDel" class="btn ghost" hidden>Rimuovi</button></div>
+          <p class="small mute">PDF o immagine (PNG, JPG): si apre il gestore dei file, dove trovi anche Drive e Dropbox. Se il PDF ha più pagine scegli quella dell’esercizio. Il riferimento resta salvato su questo dispositivo.</p>
+        </div>
+        <fieldset class="pesi"><legend>Pesi della griglia della classe</legend>
+          <div id="pesi"></div>
+          <div class="tot" id="totRow"><span id="tot"></span><button type="button" id="pReset" class="btn ghost">Ripristina</button></div>
+          <p id="tettoNote" class="small mute"></p>
+        </fieldset>
+        <div class="fld"><label for="note">Note per il correttore</label><textarea id="note" rows="2"></textarea></div>
+        <label class="chk"><input type="checkbox" id="zoom"> Invia anche i quattro quarti ingranditi, per giudicare meglio il tratto</label>
+      </details>
+    </section>
+  </div>
+
+  <section id="scheda" class="scheda" aria-label="Scheda di valutazione"></section>
+</main>
+
+<section class="reg" aria-labelledby="hReg">
+  <div class="wrap">
+    <div class="rhead">
+      <div><h2 id="hReg">Registro</h2><p id="rNote" class="small mute"></p></div>
+      <div class="tools"><button type="button" id="rCopy" class="btn">Copia per Excel</button><button type="button" id="rCsv" class="btn">Scarica CSV</button></div>
+    </div>
+    <div class="rbar"><label for="rf" class="vh">Filtra il registro</label><input id="rf" type="search" placeholder="Filtra per codice o esercizio" autocomplete="off"><span id="rStats" class="small mute"></span></div>
+    <ul id="rlist" class="rlist"></ul>
+    <p class="small mute foot">Nel registro restano codice, punteggi, giudizio ed eventuale dicitura «secondo PDP» o «secondo PEI»: le foto e le misure del piano non vengono salvate.</p>
+  </div>
+</section>
+
+<input type="file" id="fCam" accept="image/*" capture="environment" hidden>
+<input type="file" id="fGal" accept="image/*" hidden>
+<input type="file" id="fFile" accept="application/pdf,.pdf,image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" hidden>
+<input type="file" id="fRef" accept="application/pdf,.pdf,image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" hidden>
+<div id="pg" class="pg" hidden><div class="pgbox" role="dialog" aria-modal="true" aria-labelledby="pgT"><div class="pghead"><h2 id="pgT">Scegli la pagina</h2><span id="pgN" class="small mute"></span></div><div id="pgGrid" class="pggrid"></div><div class="tools"><button type="button" id="pgX" class="btn ghost">Annulla</button></div></div></div>
+<div id="toast" class="toast" role="status" hidden></div>
+<div id="cbox" class="cbox" hidden><p><b>Copia il testo</b> <span class="small mute">Qui il copia automatico non funziona: seleziona e copia a mano.</span></p><textarea id="cboxT" rows="6" readonly aria-label="Testo da copiare"></textarea><button type="button" id="cboxX" class="btn">Chiudi</button></div>
+
+<script defer src="./config.js"></script>
+<script defer src="./api.js"></script>
+<script defer src="./geometria.js"></script>
+<script defer src="./app.js"></script>
+</body>
+</html>
