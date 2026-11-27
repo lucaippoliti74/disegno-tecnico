@@ -70,7 +70,12 @@ function renderRef(){const r=S.ref;$('#refImg').hidden=!r;if(r)$('#refImg').src=
 function d2b(d){const[h,b]=d.split(','),m=/data:([^;,]+)/.exec(h),bin=atob(b),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:m?m[1]:'image/jpeg'})}
 
 /* ---------- foto */
-function loadImg(f){return new Promise((ok,ko)=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{ok(im);setTimeout(()=>URL.revokeObjectURL(u),2000)};im.onerror=()=>{URL.revokeObjectURL(u);ko(new Error('img'))};im.src=u})}
+async function loadImg(f){
+ const blob=new Blob([await f.arrayBuffer()],{type:f.type});
+ const url=URL.createObjectURL(blob),image=new Image();
+ try{image.src=url;await image.decode();return image}
+ finally{URL.revokeObjectURL(url)}
+}
 const PDFJS='./vendor/';
 const isPdf=f=>!!f&&(f.type==='application/pdf'||/\.pdf$/i.test(f.name||''));
 let pdfjsP=null;
@@ -350,7 +355,8 @@ function initCaps(){loadLocalReg();
  updValuta()}
 
 /* ---------- eventi */
-function bind(){const pick=(fn,src)=>e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;if(src)S.lastSrc=src;fn(f)};
+function bind(){const pick=(fn,src)=>async e=>{const input=e.target,f=input.files&&input.files[0];if(!f)return;if(src)S.lastSrc=src;
+ try{await fn(f)}finally{if(input.files?.[0]===f)input.value=''}};
  $('#fCam').addEventListener('change',pick(onPhoto,'cam'));$('#fGal').addEventListener('change',pick(onPhoto,'gal'));$('#fFile').addEventListener('change',pick(onPhoto,'file'));$('#fRef').addEventListener('change',pick(onRef));
  $('#refPg').addEventListener('click',()=>onRef(null,true));
  /* incolla (Ctrl+V) e trascina: tavola nel riquadro Tavola, riferimento nel suo campo */
