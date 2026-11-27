@@ -220,7 +220,7 @@ async function valuta(fase){if(!S.sample||!S.out||S.ctl||PROFILI[S.prof.tipo].no
   let gw=0,gh=0,rw=0,rh=0,grRif=false,rcan=null;
   if(gr){try{const gc=griglia(S.out),gb=await fit(gc,lim);imgs.push(gb);[gw,gh]=unitaGr(gc);
     if(ref){try{const rc=await refCanvas();imgs.push(await fit(griglia(rc),lim));[rw,rh]=unitaGr(rc);grRif=true;rcan=rc}catch(e){notes.push('reticolo del riferimento non inviato')}}}catch(e){gr=false;notes.push('reticolo di misura non inviato')}}
-  const consegna=consP||S.set.consegna.trim().slice(0,400),p=(prova?DIRETTIVA_PROVA:'')+CT.prompt(P,cr,{zoom,ref,cont:S.set.cont,consegna,consegnaPers:!!consP,compl:S.set.compl,note:(S.set.note[preset]||'').trim().slice(0,1500),noTetto,misure:pers?CT.misure(prof):[],griglia:gr,gw,gh,grigliaRif:grRif,rw,rh});
+  const consegna=consP||S.set.consegna.trim().slice(0,400),p=(prova?CTPrompts.preliminare:'')+CT.prompt(P,cr,{zoom,ref,cont:S.set.cont,consegna,consegnaPers:!!consP,compl:S.set.compl,note:(S.set.note[preset]||'').trim().slice(0,1500),noTetto,misure:pers?CT.misure(prof):[],griglia:gr,gw,gh,grigliaRif:grRif,rw,rh});
   let tier=S.set.tier;const mt=S.lim&&S.lim.modelTiers;if(mt&&!mt.includes(tier))tier='default';
   if(!stillCurrent())return;
   run('Il modello sta esaminando la tavola…');
@@ -246,7 +246,6 @@ function calcHtml(r){const cr=r.criteri,v=votoR(r);if(!v)return 'Assegna almeno 
 function tettoBlock(r,ex){const eg=arr(r.erroriGravi),ch=!!r.tetto!==!!r.tettoAi;
  return `<div class="tetto"><h3>Errori gravi</h3>${eg.length?`<ul class="eg">${eg.map(e=>`<li>${esc(e.errore)}${e.dove?` <span class="mute">· ${esc(e.dove)}</span>`:''}</li>`).join('')}</ul>`:'<p class="small mute">Il modello non ha segnalato errori gravi.</p>'}
  <label class="chk"><input type="checkbox" id="tetto"${r.tetto?' checked':''}${ex?' disabled':''}> Errore grave di metodo: il voto non supera 5,5</label><span class="mod" id="tettoMod"${ch?'':' hidden'}>${ch?(r.tettoAi?'tolto dal docente, il modello lo aveva segnalato':'aggiunto dal docente'):''}</span></div>`}
-const DIRETTIVA_PROVA='FASE PRELIMINARE DI SOVRAPPOSIZIONE: non valutare la tavola e non compilare i criteri. Rispondi solo con un oggetto JSON che contiene la chiave misure, nel formato descritto per le misure sulle assonometrie, e nessun’altra chiave.\n\n';
 const provaOk=()=>!!(S.prova&&S.prova.conf&&S.prova.out===S.out&&S.prova.ref===S.ref&&S.prova.preset===S.set.preset);
 function chiudiProva(){S.provaAperta=false;const m=document.querySelector('.provamod');if(m)m.remove()}
 function finisciProva(j,rcan,grRif,consegna,preset){const fine=[],items=[],misure=arr(j.misure).slice(0,4);
